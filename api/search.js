@@ -1,1 +1,8 @@
-
+{
+  "version": 2,
+  "functions": {
+    "api/search.js": {
+      "maxDuration": 30
+    }
+  }
+}
