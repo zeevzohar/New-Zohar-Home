@@ -1,1 +1,192 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סוכן שכירות | מכמורת ועמק חפר</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&family=Frank+Ruhl+Libre:wght@400;700&display=swap');
+  :root {
+    --sand: #F0EBE1; --earth: #C4A882; --deep: #2C3E2D; --ink: #1A1A1A;
+    --mist: #7A8C7B; --white: #FAFAF8; --accent: #5C7A5D; --error: #8B3A3A;
+    --border: #DDD6C8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Heebo', sans-serif; background: var(--sand); color: var(--ink); min-height: 100vh; }
+  header { background: var(--deep); padding: 28px 32px 24px; display: flex; align-items: flex-end; gap: 16px; }
+  .header-icon { font-size: 32px; line-height: 1; }
+  .header-text h1 { font-family: 'Frank Ruhl Libre', serif; font-size: 24px; color: var(--sand); font-weight: 700; }
+  .header-text p { font-size: 13px; color: var(--mist); margin-top: 3px; font-weight: 300; }
+  .badge { margin-right: auto; background: var(--accent); color: #fff; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 20px 64px; }
+  .filters-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .filter-group label { display: block; font-size: 11px; font-weight: 600; color: var(--mist); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-group select, .filter-group input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 14px; background: var(--white); color: var(--ink); }
+  .run-btn { grid-column: 1 / -1; background: var(--deep); color: #fff; border: none; border-radius: 8px; padding: 13px; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .run-btn:disabled { background: var(--mist); cursor: not-allowed; }
+  .status-bar { display: none; background: var(--deep); color: var(--sand); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; align-items: center; gap: 10px; }
+  .status-bar.active { display: flex; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg { background: #FDF2F2; border: 1px solid #E8C5C5; border-radius: 8px; padding: 14px 18px; color: var(--error); font-size: 13px; display: none; margin-bottom: 20px; }
+  .error-msg.active { display: block; }
+  .report-date { font-size: 12px; color: var(--mist); margin-bottom: 16px; }
+  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .results-title { font-family: 'Frank Ruhl Libre', serif; font-size: 20px; color: var(--deep); }
+  .results-meta { font-size: 12px; color: var(--mist); max-width: 50%; text-align: left; }
+  .listings-grid { display: grid; gap: 14px; }
+  .listing-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; display: grid; grid-template-columns: 1fr auto; gap: 6px; position: relative; }
+  .listing-source { position: absolute; top: 12px; left: 18px; font-size: 10px; font-weight: 600; color: var(--mist); text-transform: uppercase; letter-spacing: 0.5px; }
+  .listing-title { font-family: 'Frank Ruhl Libre', serif; font-size: 16px; color: var(--deep); font-weight: 700; margin-top: 16px; margin-bottom: 6px; }
+  .listing-details { display: flex; gap: 14px; flex-wrap: wrap; }
+  .detail-chip { font-size: 13px; color: #444; }
+  .listing-price { font-size: 20px; font-weight: 700; color: var(--accent); font-family: 'Frank Ruhl Libre', serif; text-align: left; white-space: nowrap; margin-top: 16px; }
+  .listing-price span { display: block; font-size: 11px; color: var(--mist); font-family: 'Heebo', sans-serif; font-weight: 400; }
+  .listing-desc { grid-column: 1 / -1; font-size: 13px; color: #555; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; }
+  .listing-link { grid-column: 1 / -1; font-size: 13px; color: var(--accent); text-decoration: none; font-weight: 500; margin-top: 6px; }
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--mist); }
+  .empty-state .big-icon { font-size: 48px; margin-bottom: 16px; }
+  #resultsSection { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-icon">🏡</div>
+  <div class="header-text">
+    <h1>סוכן שכירות — מכמורת ועמק חפר</h1>
+    <p>סריקת נכסים להשכרה מיד2, מדלן, הומלס ועוד</p>
+  </div>
+  <div class="badge">AI Agent</div>
+</header>
+<main>
+  <div class="filters-card">
+    <div class="filter-group">
+      <label>אזור</label>
+      <select id="area">
+        <option value="מכמורת">מכמורת בלבד</option>
+        <option value="עמק חפר מערבי">עמק חפר המערבי</option>
+        <option value="מכמורת ועמק חפר">מכמורת + עמק חפר</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>מינ׳ חדרים</label>
+      <select id="rooms">
+        <option value="0">ללא סינון</option>
+        <option value="3">3+</option>
+        <option value="4" selected>4+</option>
+        <option value="5">5+</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>מחיר מקס׳ (₪)</label>
+      <input type="number" id="price" value="10000" step="500">
+    </div>
+    <button class="run-btn" id="runBtn" onclick="runSearch()">🔍 הרץ סריקה</button>
+  </div>
 
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span id="statusText">מחפש נכסים...</span>
+  </div>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div id="resultsSection">
+    <div class="report-date" id="reportDate"></div>
+    <div class="results-header">
+      <div class="results-title" id="resultsTitle"></div>
+      <div class="results-meta" id="resultsMeta"></div>
+    </div>
+    <div class="listings-grid" id="listingsGrid"></div>
+  </div>
+
+  <div class="empty-state" id="emptyState">
+    <div class="big-icon">🌾</div>
+    <p>לחץ "הרץ סריקה" כדי לחפש נכסים להשכרה באזור</p>
+  </div>
+</main>
+
+<script>
+async function runSearch() {
+  var area = document.getElementById('area').value;
+  var rooms = document.getElementById('rooms').value;
+  var price = document.getElementById('price').value;
+  var btn = document.getElementById('runBtn');
+  var statusBar = document.getElementById('statusBar');
+  var statusText = document.getElementById('statusText');
+  var errorMsg = document.getElementById('errorMsg');
+  var emptyState = document.getElementById('emptyState');
+  var resultsSection = document.getElementById('resultsSection');
+
+  btn.disabled = true;
+  statusBar.classList.add('active');
+  errorMsg.classList.remove('active');
+  emptyState.style.display = 'none';
+  resultsSection.style.display = 'none';
+  statusText.textContent = 'מחפש נכסים ביד2, מדלן, הומלס...';
+
+  try {
+    var response = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ area: area, rooms: rooms, price: price })
+    });
+
+    var data = await response.json();
+
+    if (!response.ok || data.error) {
+      throw new Error(data.error || 'שגיאה לא ידועה');
+    }
+
+    renderResults(data.listings || [], area, data.summary || '');
+
+  } catch (err) {
+    errorMsg.textContent = 'שגיאה: ' + err.message;
+    errorMsg.classList.add('active');
+    emptyState.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    statusBar.classList.remove('active');
+  }
+}
+
+function renderResults(listings, area, summary) {
+  var now = new Date();
+  document.getElementById('reportDate').textContent = 'דוח נוצר: ' +
+    now.toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) +
+    ' | ' + now.toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
+
+  if (!listings.length) {
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('emptyState').querySelector('p').textContent = summary || 'לא נמצאו נכסים מתאימים.';
+    return;
+  }
+
+  document.getElementById('resultsTitle').textContent = 'נמצאו ' + listings.length + ' נכסים — ' + area;
+  document.getElementById('resultsMeta').textContent = summary;
+
+  var grid = document.getElementById('listingsGrid');
+  grid.innerHTML = '';
+
+  listings.forEach(function(l) {
+    var card = document.createElement('div');
+    card.className = 'listing-card';
+    var priceHtml = l.price ? ('₪' + Number(l.price).toLocaleString('he-IL')) : 'מחיר לא ידוע';
+    var details = '<div class="detail-chip">📍 ' + (l.location || 'לא צוין') + '</div>';
+    if (l.rooms) details += '<div class="detail-chip">🛏️ ' + l.rooms + ' חדרים</div>';
+    if (l.size) details += '<div class="detail-chip">📐 ' + l.size + ' מ"ר</div>';
+    if (l.floor) details += '<div class="detail-chip">🏢 קומה ' + l.floor + '</div>';
+    card.innerHTML =
+      '<div class="listing-source">' + (l.source || '') + '</div>' +
+      '<div><div class="listing-title">' + (l.title || 'נכס להשכרה') + '</div>' +
+      '<div class="listing-details">' + details + '</div></div>' +
+      '<div><div class="listing-price">' + priceHtml + '<span>לחודש</span></div></div>' +
+      (l.description ? '<div class="listing-desc">' + l.description + '</div>' : '') +
+      (l.url ? '<a class="listing-link" href="' + l.url + '" target="_blank">🔗 לצפייה במודעה ←</a>' : '');
+    grid.appendChild(card);
+  });
+
+  document.getElementById('resultsSection').style.display = 'block';
+}
+</script>
+</body>
+</html>
